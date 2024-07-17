@@ -602,17 +602,17 @@ static void MX_TIM1_Init(void)
  8000614:	4b1b      	ldr	r3, [pc, #108]	@ (8000684 <MX_TIM1_Init+0x98>)
  8000616:	2200      	movs	r2, #0
  8000618:	609a      	str	r2, [r3, #8]
-  htim1.Init.Period = 50000;
+  htim1.Init.Period = 10000;
  800061a:	4b1a      	ldr	r3, [pc, #104]	@ (8000684 <MX_TIM1_Init+0x98>)
- 800061c:	f24c 3250 	movw	r2, #50000	@ 0xc350
+ 800061c:	f242 7210 	movw	r2, #10000	@ 0x2710
  8000620:	60da      	str	r2, [r3, #12]
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
  8000622:	4b18      	ldr	r3, [pc, #96]	@ (8000684 <MX_TIM1_Init+0x98>)
  8000624:	2200      	movs	r2, #0
  8000626:	611a      	str	r2, [r3, #16]
-  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.RepetitionCounter = 4;
  8000628:	4b16      	ldr	r3, [pc, #88]	@ (8000684 <MX_TIM1_Init+0x98>)
- 800062a:	2200      	movs	r2, #0
+ 800062a:	2204      	movs	r2, #4
  800062c:	615a      	str	r2, [r3, #20]
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
  800062e:	4b15      	ldr	r3, [pc, #84]	@ (8000684 <MX_TIM1_Init+0x98>)
