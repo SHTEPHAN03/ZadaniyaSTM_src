@@ -26,6 +26,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usart.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,7 +36,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define bitcheck(byte,nbit) ((byte) & (1<<(nbit)))
+#define bitflip(byte,nbit)  ((byte) ^=  (1<<(nbit)))
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,7 +47,9 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-	uint8_t flag = 0;
+	uint8_t numByte = 0;
+	uint8_t byteArr[3];
+	uint8_t i = 0;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -64,7 +68,7 @@ const osThreadAttr_t LedTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-
+void Set_PWM_Duty_Cycle();
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -121,7 +125,6 @@ void MX_FREERTOS_Init(void) {
   * @param  argument: Not used
   * @retval None
   */
-	uint8_t led = 0;
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
@@ -129,13 +132,22 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  if (HAL_GPIO_ReadPin(GPIOC, B1_Pin)){
-		  led=1;
+	  HAL_UART_Receive(&huart1, &numByte,1,50);
+	  if (bitcheck(numByte, 7) == 0){
+		  i = 0;
+		  byteArr[i]=numByte;
 	  }
-	  else {
-		  led=0;
+	  else  {
+		  i++;
+		  byteArr[i]=numByte;
 	  }
-    osDelay(1);
+	  if (i==2){
+	  if (bitcheck(byteArr[2],7) != bitcheck(numByte,5)){
+		  bitflip(byteArr[2],7);
+		  byteArr[2]=byteArr[2]*2;
+	  }
+	  }
+	  osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -153,7 +165,7 @@ void StartLedTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  HAL_UART_Transmit(&huart1, &led, 1, 1);
+	  Set_PWM_Duty_Cycle(&htim3, TIM_CHANNEL_2, byteArr[2]);
     osDelay(1);
   }
   /* USER CODE END StartLedTask */
