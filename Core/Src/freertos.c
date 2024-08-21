@@ -36,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define bitcheck(byte,nbit) ((byte) & (1<<(nbit)))
+#define bitcheck(byte,nbit) (((byte) & (1<<(nbit)))>>nbit)
 #define bitflip(byte,nbit)  ((byte) ^=  (1<<(nbit)))
 /* USER CODE END PD */
 
@@ -50,6 +50,12 @@
 	uint8_t numByte = 0;
 	uint8_t byteArr[3];
 	uint8_t i = 0;
+	uint16_t znach = 0;
+
+	uint8_t H, S, V;
+	uint8_t Hi, a;
+	uint8_t R, G, B;
+	float Vmin, Vinc, Vdec;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -69,6 +75,55 @@ const osThreadAttr_t LedTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void Set_PWM_Duty_Cycle();
+	void colorLib ()
+ {
+	H = znach/13;
+	V = 85;
+	S = 100;
+
+	Hi = (H / 56) % 6;
+	Vmin = ((100 - S) * V) / 100;
+	a = (V - Vmin) * ((H % 56) / 56);
+	Vinc = Vmin + a;
+	Vdec = V - a;
+
+	V = V * 255 / 100;
+	Vdec = Vdec * 255 / 100;
+	Vinc = Vinc * 255 / 100;
+	Vmin = Vmin * 255 / 100;
+
+	   if (Hi == 0) {
+	      R = V;
+	      G = Vinc;
+	      B = Vmin;
+	   }
+	   else if (Hi == 1) {
+	      R = Vdec;
+	      G = V;
+	      B = Vmin;
+	   }
+	   else if (Hi == 2) {
+	      R = Vmin;
+	      G = V;
+	      B = Vinc;
+	   }
+	   else if (Hi == 3) {
+	      R = Vmin;
+	      G = Vdec;
+	      B = V;
+	   }
+	   else if (Hi == 4) {
+	      R = Vinc;
+	      G = Vmin;
+	      B = V;
+	   }
+	   else if (Hi == 5) {
+	      R = V;
+	      G = Vmin;
+	      B = Vdec;
+	   }
+
+}
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -104,7 +159,7 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+	defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* creation of LedTask */
   LedTaskHandle = osThreadNew(StartLedTask, NULL, &LedTask_attributes);
@@ -132,7 +187,7 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  HAL_UART_Receive(&huart1, &numByte,1,50);
+	  if (HAL_UART_Receive(&huart1, &numByte,1,50) == HAL_OK){
 	  if (bitcheck(numByte, 7) == 0){
 		  i = 0;
 		  byteArr[i]=numByte;
@@ -142,11 +197,13 @@ void StartDefaultTask(void *argument)
 		  byteArr[i]=numByte;
 	  }
 	  if (i==2){
-	  if (bitcheck(byteArr[2],7) != bitcheck(numByte,5)){
-		  bitflip(byteArr[2],7);
-		  byteArr[2]=byteArr[2]*2;
+		  if (bitcheck(byteArr[2],7) != bitcheck(byteArr[0],5)){
+			  bitflip(byteArr[2],7);
+	  }
+		  znach=byteArr[2]*17;
 	  }
 	  }
+
 	  osDelay(1);
   }
   /* USER CODE END StartDefaultTask */
@@ -165,11 +222,15 @@ void StartLedTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-	  Set_PWM_Duty_Cycle(&htim3, TIM_CHANNEL_2, byteArr[2]);
-    osDelay(1);
+	  colorLib();
+	  Set_PWM_Duty_Cycle(&htim3, TIM_CHANNEL_1, R);
+	  Set_PWM_Duty_Cycle(&htim3, TIM_CHANNEL_2, G);
+	  Set_PWM_Duty_Cycle(&htim3, TIM_CHANNEL_3, B);
   }
-  /* USER CODE END StartLedTask */
+    osDelay(1);
 }
+  /* USER CODE END StartLedTask */
+
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
