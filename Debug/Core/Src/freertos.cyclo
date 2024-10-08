@@ -1,4 +1,4 @@
-../Core/Src/freertos.c:184:6:StartDefaultTask	5
-../Core/Src/freertos.c:78:7:colorLib	7
-../Core/Src/freertos.c:219:6:StartLedTask	1
-../Core/Src/freertos.c:139:6:MX_FREERTOS_Init	1
+../Core/Src/freertos.c:175:6:StartDefaultTask	5
+../Core/Src/freertos.c:75:6:colorLib	13
+../Core/Src/freertos.c:207:6:StartLedTask	1
+../Core/Src/freertos.c:129:6:MX_FREERTOS_Init	1
